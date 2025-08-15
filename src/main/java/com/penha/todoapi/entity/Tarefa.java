@@ -22,14 +22,8 @@ public class Tarefa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String titulo;
-
     private String descricao;
-
     private Boolean concluida;
-
     private LocalDate dataCriacao;
-
-
 }
