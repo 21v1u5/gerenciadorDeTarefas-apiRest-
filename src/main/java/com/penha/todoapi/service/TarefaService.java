@@ -1,6 +1,8 @@
 package com.penha.todoapi.service;
 
 
+import com.penha.todoapi.dto.TarefaRequestDTO;
+import com.penha.todoapi.dto.TarefaResponseDTO;
 import com.penha.todoapi.entity.Tarefa;
 import com.penha.todoapi.repository.TarefaRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,29 +17,46 @@ public class TarefaService {
 
     private final TarefaRepository repository;
 
-    public Tarefa criar(Tarefa tarefa){
-        tarefa.setDataCriacao(LocalDate.now());
+    public TarefaResponseDTO criar(TarefaRequestDTO dto){
+        Tarefa tarefa = new Tarefa();
+        tarefa.setTitulo((dto.titulo()));
+        tarefa.setDescricao(dto.descricao());
         tarefa.setConcluida(false);
-        return repository.save(tarefa);
+        tarefa.setDataCriacao(LocalDate.now());
+
+        Tarefa salva = repository.save(tarefa);
+        return toResponseDTO(salva);
     }
 
-    public List<Tarefa> listar() {
-        return repository.findAll();
+    public List<TarefaResponseDTO> listar() {
+        return repository.findAll().stream().map(this::toResponseDTO).toList();
     }
 
-    public Tarefa buscarPorId(Long id){
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+    public TarefaResponseDTO buscarPorId(Long id){
+        return toResponseDTO(repository.findById(id).orElseThrow(() -> new RuntimeException("Tarefa não encontrada")));
     }
 
-    public Tarefa atualizar(Long id, Tarefa nova){
-        Tarefa antiga = buscarPorId(id);
-        antiga.setTitulo(nova.getTitulo());
-        antiga.setDescricao((nova.getDescricao()));
-        antiga.setConcluida(nova.getConcluida());
-        return repository.save(antiga);
+    public TarefaResponseDTO atualizar(Long id, TarefaRequestDTO dto){
+        Tarefa tarefa = repository.findById(id).orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+        tarefa.setTitulo(dto.titulo());
+        tarefa.setDescricao(dto.descricao());
+        tarefa.setConcluida(dto.concluida());
+
+        Tarefa atualizada = repository.save(tarefa);
+        return toResponseDTO(atualizada);
     }
 
     public void deletar(Long id){
         repository.deleteById(id);
+    }
+
+    private TarefaResponseDTO toResponseDTO(Tarefa tarefa){
+        return new TarefaResponseDTO(
+                tarefa.getId(),
+                tarefa.getTitulo(),
+                tarefa.getDescricao(),
+                tarefa.getConcluida(),
+                tarefa.getDataCriacao()
+        );
     }
 }
